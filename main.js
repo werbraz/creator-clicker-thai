@@ -7,6 +7,7 @@ let state = {
     diamonds: 0,
     energy: 100,
     maxEnergy: 100,
+    energyRegen: 5,
     tierMultiplier: 1,
     tierName: 'เริ่มทำช่อง',
     viralActive: false,
@@ -34,10 +35,34 @@ const tiers = [
 const upgradeTypes = {
     CLICK: 'click',
     IDLE: 'idle',
-    AUTO_CLICK: 'auto_click'
+    AUTO_CLICK: 'auto_click',
+    MAX_ENERGY: 'max_energy',
+    ENERGY_REGEN: 'energy_regen'
 };
 
 const upgrades = [
+    {
+        id: 'power_bank',
+        name: 'พาวเวอร์แบงค์',
+        description: '+50 พลังงานสูงสุด',
+        type: upgradeTypes.MAX_ENERGY,
+        baseCost: 500,
+        costMultiplier: 1.5,
+        power: 50,
+        icon: 'fa-battery-full',
+        level: 0
+    },
+    {
+        id: 'coffee',
+        name: 'กาแฟคั่วบด',
+        description: '+2 ฟื้นฟูพลังงาน/วินาที',
+        type: upgradeTypes.ENERGY_REGEN,
+        baseCost: 1000,
+        costMultiplier: 1.5,
+        power: 2,
+        icon: 'fa-mug-hot',
+        level: 0
+    },
     {
         id: 'auto_clicker',
         name: 'ออโต้คลิก',
@@ -138,7 +163,6 @@ const els = {
 
 // Config
 const ENERGY_DRAIN_PER_CLICK = 2;
-const ENERGY_REGEN_PER_SEC = 5;
 
 // Utility
 function formatNumber(num) {
@@ -188,6 +212,8 @@ function recalculateStats() {
     state.viewsPerClick = 1;
     state.viewsPerSecond = 0;
     state.autoClicksPerSecond = 0;
+    state.maxEnergy = 100;
+    state.energyRegen = 5;
 
     upgrades.forEach(u => {
         if (u.type === upgradeTypes.CLICK) {
@@ -196,8 +222,16 @@ function recalculateStats() {
             state.viewsPerSecond += (u.power * u.level);
         } else if (u.type === upgradeTypes.AUTO_CLICK) {
             state.autoClicksPerSecond += (u.power * u.level);
+        } else if (u.type === upgradeTypes.MAX_ENERGY) {
+            state.maxEnergy += (u.power * u.level);
+        } else if (u.type === upgradeTypes.ENERGY_REGEN) {
+            state.energyRegen += (u.power * u.level);
         }
     });
+
+    if (state.energy > state.maxEnergy) {
+        state.energy = state.maxEnergy;
+    }
 }
 
 function getUpgradeCost(upg) {
@@ -391,7 +425,7 @@ els.mainBtn.addEventListener('click', (e) => {
 setInterval(() => {
     // Energy Regen
     if (state.energy < state.maxEnergy) {
-        state.energy += (ENERGY_REGEN_PER_SEC / 10);
+        state.energy += (state.energyRegen / 10);
         if (state.energy > state.maxEnergy) state.energy = state.maxEnergy;
     }
 
