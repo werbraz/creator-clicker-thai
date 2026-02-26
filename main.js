@@ -11,10 +11,22 @@ let state = {
 // Upgrades Configuration
 const upgradeTypes = {
     CLICK: 'click',
-    IDLE: 'idle'
+    IDLE: 'idle',
+    AUTO_CLICK: 'auto_click'
 };
 
 const upgrades = [
+    {
+        id: 'auto_clicker',
+        name: 'ออโต้คลิก',
+        description: 'กดคลิกอัตโนมัติ 1 ครั้ง / วินาที',
+        type: upgradeTypes.AUTO_CLICK,
+        baseCost: 100,
+        costMultiplier: 1.5,
+        power: 1, // Clicks per second
+        icon: 'fa-robot',
+        level: 0
+    },
     {
         id: 'better_camera',
         name: 'กล้องดีขึ้น',
@@ -131,12 +143,15 @@ function loadGame() {
 function recalculateStats() {
     state.viewsPerClick = 1;
     state.viewsPerSecond = 0;
+    state.autoClicksPerSecond = 0;
 
     upgrades.forEach(u => {
         if (u.type === upgradeTypes.CLICK) {
             state.viewsPerClick += (u.power * u.level);
         } else if (u.type === upgradeTypes.IDLE) {
             state.viewsPerSecond += (u.power * u.level);
+        } else if (u.type === upgradeTypes.AUTO_CLICK) {
+            state.autoClicksPerSecond += (u.power * u.level);
         }
     });
 }
@@ -245,6 +260,10 @@ function createFloatingText(e) {
     if (e && e.clientX) {
         x = e.clientX - rect.left - 20; // offset for center
         y = e.clientY - rect.top - 20;
+    } else if (e && e.isAuto) {
+        // Randomize auto click position
+        x = (rect.width / 2) + (Math.random() * 100 - 50);
+        y = (rect.height / 2) - 50 + (Math.random() * 100 - 50);
     }
 
     floatEl.style.left = `${x}px`;
@@ -274,6 +293,29 @@ setInterval(() => {
         state.views += amount;
         state.totalViews += amount;
         updateUI();
+    }
+}, 100);
+
+// Auto Click Loop
+let autoClickAccumulator = 0;
+setInterval(() => {
+    if (state.autoClicksPerSecond > 0) {
+        const clicksPerIter = state.autoClicksPerSecond / 10; // since loop runs 10 times a sec
+        autoClickAccumulator += clicksPerIter;
+
+        while (autoClickAccumulator >= 1) {
+            // Simulate a physical click
+            state.views += state.viewsPerClick;
+            state.totalViews += state.viewsPerClick;
+
+            // Randomly create floating text for auto-clicks so it looks alive
+            if (Math.random() > 0.5) {
+                createFloatingText({ isAuto: true });
+            }
+
+            autoClickAccumulator -= 1;
+            updateUI();
+        }
     }
 }, 100);
 
