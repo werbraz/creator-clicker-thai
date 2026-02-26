@@ -1,0 +1,65 @@
+/* src/index.css equivalents in style.css */
+
+.neon-text-glow {
+    text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+/* Custom Scrollbar for the upgrades panel */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.3);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.6);
+}
+
+/* Floating animation for clicks */
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-80px) scale(1.5);
+    }
+}
+
+.floating-text {
+    animation: floatUp 1s ease-out forwards;
+}
+
+/* A pulse animation for the active state of upgrades */
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+    }
+}
+
+.upgrade-card.affordable:hover {
+    animation: pulseGlow 1.5s infinite;
+}
+
+.upgrade-card {
+    transition: all 0.2s ease;
+}
+
+.upgrade-card:active.affordable {
+    transform: scale(0.98);
+}
