@@ -1,12 +1,34 @@
-// Game State
 let state = {
     views: 0,
     totalViews: 0,
     subscribers: 0,
     viewsPerClick: 1,
     viewsPerSecond: 0,
+    diamonds: 0,
+    energy: 100,
+    maxEnergy: 100,
+    tierMultiplier: 1,
+    tierName: 'เริ่มทำช่อง',
+    viralActive: false,
+    dramaActive: false,
+    missions: [],
     lastSaved: Date.now()
 };
+
+// Event State Tracker
+let activeModifiers = {
+    viralMultiplier: 1,
+    dramaMultiplier: 1
+};
+
+// Prestige Tiers
+const tiers = [
+    { name: 'เริ่มทำช่อง', req: 0, mult: 1 },
+    { name: 'ป้ายทองแดง', req: 100000, mult: 2, icon: 'text-orange-400' },
+    { name: 'ป้ายเงิน', req: 1000000, mult: 5, icon: 'text-gray-300' },
+    { name: 'ป้ายทอง', req: 10000000, mult: 10, icon: 'text-yellow-400' },
+    { name: 'ป้ายเพชร', req: 100000000, mult: 25, icon: 'text-cyan-400' }
+];
 
 // Upgrades Configuration
 const upgradeTypes = {
@@ -93,8 +115,30 @@ const els = {
     mainBtn: document.getElementById('main-click-btn'),
     clickerArea: document.getElementById('clicker-area'),
     upgradesList: document.getElementById('upgrades-list'),
-    template: document.getElementById('floating-text-template')
+    template: document.getElementById('floating-text-template'),
+    energyBar: document.getElementById('energy-bar'),
+    energyText: document.getElementById('energy-text'),
+    diamondCount: document.getElementById('diamond-count'),
+    tierName: document.getElementById('tier-name'),
+
+    // Events UI
+    viralBtn: document.getElementById('viral-btn'),
+    dramaOverlay: document.getElementById('drama-overlay'),
+    dramaProgressBar: document.getElementById('drama-progress-bar'),
+    apologyBtn: document.getElementById('apology-btn'),
+    dramaTimer: document.getElementById('drama-timer'),
+
+    // Missions UI
+    openMissionsBtn: document.getElementById('open-missions-btn'),
+    closeMissionsBtn: document.getElementById('close-missions-btn'),
+    missionsModal: document.getElementById('missions-modal'),
+    missionsList: document.getElementById('missions-list'),
+    buyEnergyBtn: document.getElementById('buy-energy-btn')
 };
+
+// Config
+const ENERGY_DRAIN_PER_CLICK = 2;
+const ENERGY_REGEN_PER_SEC = 5;
 
 // Utility
 function formatNumber(num) {
@@ -161,13 +205,54 @@ function getUpgradeCost(upg) {
 }
 
 // UI Rendering
+function checkTiers() {
+    // Find the highest tier they qualify for
+    let currentTierIndex = tiers.findIndex(t => t.name === state.tierName);
+    if (currentTierIndex === -1) currentTierIndex = 0;
+
+    let nextTier = tiers[currentTierIndex + 1];
+    if (nextTier && state.subscribers >= nextTier.req) {
+        // Prompt Prestige
+        if (confirm(`ยินดีด้วย! คุณถึง ${formatNumber(nextTier.req)} ซับแล้ว 🎉\n\nต้องการรับ "${nextTier.name}" ไหม?\n(คำเตือน: ยอดวิว, ซับ, และอัปเกรด จะถูกรีเซ็ต แต่คุณจะได้โบนัส x${nextTier.mult} ทุกอย่างถาวร!)`)) {
+            // Prestige Reset
+            state.views = 0;
+            state.totalViews = 0;
+            state.subscribers = 0;
+            state.energy = state.maxEnergy;
+            state.tierName = nextTier.name;
+            state.tierMultiplier = nextTier.mult;
+
+            // Reset Upgrades
+            upgrades.forEach(u => u.level = 0);
+
+            recalculateStats();
+            renderUpgrades();
+            updateUI();
+            saveGame();
+            alert('รีเซ็ตช่องสำเร็จ! เริ่มต้นตำนานบทใหม่พร้อมตัวคูณมหาศาล!');
+        }
+    }
+}
+
 function updateUI() {
     state.subscribers = calculateSubscribers(state.totalViews);
+    checkTiers();
 
     els.totalViews.innerHTML = `<i class="fa-solid fa-eye text-purple-400 text-xl"></i> ${formatNumber(state.views)}`;
-    els.viewsPerSec.innerHTML = `<i class="fa-solid fa-bolt text-yellow-400 text-xl"></i> ${formatNumber(state.viewsPerSecond)}`;
+
+    let effectiveViewsPerSec = state.viewsPerSecond * state.tierMultiplier * activeModifiers.viralMultiplier * activeModifiers.dramaMultiplier;
+    els.viewsPerSec.innerHTML = `<i class="fa-solid fa-bolt text-yellow-400 text-xl"></i> ${formatNumber(effectiveViewsPerSec)}`;
+
     els.totalSubs.innerHTML = `<i class="fa-solid fa-users text-pink-400 text-xl"></i> ${formatNumber(state.subscribers)}`;
-    els.clickPower.innerText = formatNumber(state.viewsPerClick);
+
+    let effectiveClickPower = state.viewsPerClick * state.tierMultiplier * activeModifiers.viralMultiplier;
+    els.clickPower.innerText = formatNumber(effectiveClickPower);
+
+    // New UI elements (checking existence to prevent errors if HTML not fully updated yet)
+    if (els.diamondCount) els.diamondCount.innerText = formatNumber(state.diamonds);
+    if (els.tierName) els.tierName.innerText = state.tierName;
+    if (els.energyText) els.energyText.innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
+    if (els.energyBar) els.energyBar.style.width = `${(state.energy / state.maxEnergy) * 100}%`;
 
     // Update upgrade buttons affordability
     upgrades.forEach(upg => {
@@ -244,11 +329,11 @@ function buyUpgrade(id) {
     }
 }
 
-function createFloatingText(e) {
+function createFloatingText(e, amount) {
     // Use template
     const templateContent = els.template.content.cloneNode(true);
     const floatEl = templateContent.querySelector('.floating-text');
-    floatEl.innerText = `+${formatNumber(state.viewsPerClick)}`;
+    floatEl.innerText = `+${formatNumber(amount)}`;
 
     // Position
     const rect = els.clickerArea.getBoundingClientRect();
@@ -279,21 +364,46 @@ function createFloatingText(e) {
 
 // Interactions
 els.mainBtn.addEventListener('click', (e) => {
-    state.views += state.viewsPerClick;
-    state.totalViews += state.viewsPerClick;
-    updateUI();
-    createFloatingText(e);
+    if (state.energy >= ENERGY_DRAIN_PER_CLICK) {
+        state.energy -= ENERGY_DRAIN_PER_CLICK;
+        const gained = state.viewsPerClick * state.tierMultiplier * activeModifiers.viralMultiplier;
+        state.views += gained;
+        state.totalViews += gained;
+
+        // Mission Tracking for Clicks
+        state.missions.forEach(m => {
+            if (m.type === 'click' && !m.completed) {
+                m.progress++;
+                if (m.progress >= m.target) m.completed = true;
+            }
+        });
+
+        createFloatingText(e, gained);
+        updateUI();
+    } else {
+        // Not enough energy visual feedback
+        els.mainBtn.classList.add('shake');
+        setTimeout(() => els.mainBtn.classList.remove('shake'), 500);
+    }
 });
 
 // Loops
 setInterval(() => {
+    // Energy Regen
+    if (state.energy < state.maxEnergy) {
+        state.energy += (ENERGY_REGEN_PER_SEC / 10);
+        if (state.energy > state.maxEnergy) state.energy = state.maxEnergy;
+    }
+
+    // Passive Views
     if (state.viewsPerSecond > 0) {
         // add 1/10th of viewsPerSecond every 100ms for smooth UI
-        const amount = state.viewsPerSecond / 10;
+        const amount = (state.viewsPerSecond * state.tierMultiplier * activeModifiers.viralMultiplier * activeModifiers.dramaMultiplier) / 10;
         state.views += amount;
         state.totalViews += amount;
-        updateUI();
     }
+
+    updateUI();
 }, 100);
 
 // Auto Click Loop
@@ -303,14 +413,16 @@ setInterval(() => {
         const clicksPerIter = state.autoClicksPerSecond / 10; // since loop runs 10 times a sec
         autoClickAccumulator += clicksPerIter;
 
-        while (autoClickAccumulator >= 1) {
-            // Simulate a physical click
-            state.views += state.viewsPerClick;
-            state.totalViews += state.viewsPerClick;
+        while (autoClickAccumulator >= 1 && state.energy >= ENERGY_DRAIN_PER_CLICK) {
+            state.energy -= ENERGY_DRAIN_PER_CLICK;
+
+            const gained = state.viewsPerClick * state.tierMultiplier * activeModifiers.viralMultiplier;
+            state.views += gained;
+            state.totalViews += gained;
 
             // Randomly create floating text for auto-clicks so it looks alive
             if (Math.random() > 0.5) {
-                createFloatingText({ isAuto: true });
+                createFloatingText({ isAuto: true }, gained);
             }
 
             autoClickAccumulator -= 1;
@@ -323,7 +435,224 @@ setInterval(() => {
     saveGame();
 }, 10000);
 
+// ================= EVENT SYSTEMS =================
+
+// 1. Viral Event Logic
+function spawnViral() {
+    if (state.viralActive || state.dramaActive) return;
+
+    state.viralActive = true;
+    els.viralBtn.classList.remove('hidden');
+
+    // Random Position within screen bounds
+    const maxX = window.innerWidth - 100;
+    const maxY = window.innerHeight - 100;
+    els.viralBtn.style.left = `${Math.max(20, Math.random() * maxX)}px`;
+    els.viralBtn.style.top = `${Math.max(80, Math.random() * maxY)}px`;
+
+    // Despawn if not clicked in 5 seconds
+    const despawnTimer = setTimeout(() => {
+        if (state.viralActive) {
+            state.viralActive = false;
+            els.viralBtn.classList.add('hidden');
+        }
+    }, 5000);
+
+    // Click handler
+    els.viralBtn.onclick = () => {
+        clearTimeout(despawnTimer);
+        els.viralBtn.classList.add('hidden');
+
+        // Apply Buff
+        activeModifiers.viralMultiplier = 10;
+        updateUI();
+
+        // Expire Buff after 30s
+        setTimeout(() => {
+            activeModifiers.viralMultiplier = 1;
+            state.viralActive = false;
+            updateUI();
+        }, 30000);
+    };
+}
+
+// 2. Drama Event Logic
+let dramaClicks = 0;
+let dramaTimerInterval = null;
+
+function spawnDrama() {
+    if (state.viralActive || state.dramaActive) return;
+
+    state.dramaActive = true;
+    activeModifiers.dramaMultiplier = 0.5; // Cut passive income in half
+    dramaClicks = 0;
+
+    let timeLeft = 10;
+    els.dramaTimer.innerText = timeLeft;
+    els.dramaProgressBar.style.width = '0%';
+    els.dramaOverlay.classList.remove('hidden');
+    updateUI();
+
+    dramaTimerInterval = setInterval(() => {
+        timeLeft--;
+        els.dramaTimer.innerText = timeLeft;
+        if (timeLeft <= 0) {
+            endDrama(false);
+        }
+    }, 1000);
+}
+
+function handleDramaClick() {
+    dramaClicks++;
+    els.dramaProgressBar.style.width = `${(dramaClicks / 20) * 100}%`;
+
+    // Shake button effect
+    els.apologyBtn.classList.add('scale-95');
+    setTimeout(() => els.apologyBtn.classList.remove('scale-95'), 50);
+
+    if (dramaClicks >= 20) {
+        endDrama(true);
+    }
+}
+
+function endDrama(success) {
+    clearInterval(dramaTimerInterval);
+    state.dramaActive = false;
+    activeModifiers.dramaMultiplier = 1;
+    els.dramaOverlay.classList.add('hidden');
+
+    if (!success) {
+        // Player failed, lose 10% of total views/subs theoretically, we'll just penalize total Views which recalculates subs
+        const penalty = state.totalViews * 0.1;
+        state.totalViews -= penalty;
+        if (state.totalViews < 0) state.totalViews = 0;
+        state.views -= penalty;
+        if (state.views < 0) state.views = 0;
+        alert("คุณอัดคลิปขอโทษไม่ทัน! ยอดวิวและผู้ติดตามหายไป 10%");
+    }
+    updateUI();
+}
+
+els.apologyBtn.addEventListener('click', handleDramaClick);
+
+// Random Spawners
+setInterval(() => {
+    // 10% chance every 30s to spawn Viral
+    if (Math.random() < 0.1) spawnViral();
+}, 30000);
+
+setInterval(() => {
+    // 5% chance every 45s to spawn Drama
+    if (Math.random() < 0.05) spawnDrama();
+}, 45000);
+
+// ================= MISSIONS SYSTEM =================
+function generateMissions() {
+    if (state.missions.length === 0) {
+        state.missions = [
+            { id: 1, desc: 'คลิก 50 ครั้ง', type: 'click', target: 50, progress: 0, reward: 5, completed: false, claimed: false },
+            { id: 2, desc: 'สะสม 10,000 วิว', type: 'views', target: 10000, progress: 0, reward: 10, completed: false, claimed: false },
+            { id: 3, desc: 'อัปเกรดอะไรก็ได้ 5 ครั้ง', type: 'upgrade', target: 5, progress: 0, reward: 5, completed: false, claimed: false }
+        ];
+    }
+}
+
+function renderMissions() {
+    if (!els.missionsList) return;
+    els.missionsList.innerHTML = '';
+
+    state.missions.forEach(m => {
+        // Update view progress dynamically
+        if (m.type === 'views' && !m.completed) {
+            m.progress = Math.floor(state.views);
+            if (m.progress >= m.target) m.completed = true;
+        }
+
+        const isDone = m.completed && !m.claimed;
+        const btnText = m.claimed ? 'รับแล้ว' : (isDone ? 'รับรางวัล' : `${formatNumber(m.progress)} / ${formatNumber(m.target)}`);
+        const btnClass = m.claimed ? 'bg-gray-600 cursor-not-allowed' : (isDone ? 'bg-green-500 hover:bg-green-400' : 'bg-slate-700 text-gray-400');
+
+        const card = document.createElement('div');
+        card.className = `flex justify-between items-center bg-black/40 p-3 rounded-xl border ${isDone ? 'border-green-500/50' : 'border-white/5'}`;
+        card.innerHTML = `
+            <div>
+                <p class="font-bold text-sm ${m.claimed ? 'text-gray-500 line-through' : 'text-white'}">${m.desc}</p>
+                <p class="text-xs text-sky-300 font-bold mt-1"><i class="fa-regular fa-gem"></i> ${m.reward}</p>
+            </div>
+            <button class="px-4 py-2 rounded-lg text-xs font-bold transition-colors ${btnClass}" ${m.claimed ? 'disabled' : ''}>
+                ${btnText}
+            </button>
+        `;
+
+        if (isDone) {
+            card.querySelector('button').onclick = () => {
+                state.diamonds += m.reward;
+                m.claimed = true;
+
+                // If all claimed, regenerate new ones
+                if (state.missions.every(mis => mis.claimed)) {
+                    state.missions = [];
+                    generateMissions();
+                }
+
+                renderMissions();
+                updateUI();
+                saveGame();
+            };
+        }
+
+        els.missionsList.appendChild(card);
+    });
+}
+
+// Track Upgrades for missions
+const originalBuyUpgrade = buyUpgrade;
+buyUpgrade = function (id) {
+    const prevLevel = upgrades.find(u => u.id === id).level;
+    originalBuyUpgrade(id);
+    const newLevel = upgrades.find(u => u.id === id).level;
+
+    if (newLevel > prevLevel) {
+        state.missions.forEach(m => {
+            if (m.type === 'upgrade' && !m.completed) {
+                m.progress++;
+                if (m.progress >= m.target) m.completed = true;
+            }
+        });
+        if (!els.missionsModal.classList.contains('hidden')) renderMissions();
+    }
+};
+
+// UI Listeners
+if (els.openMissionsBtn) {
+    els.openMissionsBtn.onclick = () => {
+        renderMissions();
+        els.missionsModal.classList.remove('hidden');
+    };
+    els.closeMissionsBtn.onclick = () => els.missionsModal.classList.add('hidden');
+
+    els.buyEnergyBtn.onclick = () => {
+        if (state.diamonds >= 10 && state.energy < state.maxEnergy) {
+            state.diamonds -= 10;
+            state.energy = state.maxEnergy;
+            updateUI();
+            saveGame();
+
+            // Visual feedback
+            els.buyEnergyBtn.classList.add('bg-green-500/40');
+            setTimeout(() => els.buyEnergyBtn.classList.remove('bg-green-500/40'), 300);
+        } else if (state.energy >= state.maxEnergy) {
+            alert('พลังงานเต็มอยู่แล้ว!');
+        } else {
+            alert('เพชรไม่พอ!');
+        }
+    };
+}
+
+
 // Init
+// =================================================
+generateMissions();
 loadGame();
 renderUpgrades();
 updateUI();

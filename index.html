@@ -34,27 +34,51 @@
       <p class="text-xs md:text-sm text-gray-400 mt-0.5">เริ่มต้นเส้นทางสู่ 1 ล้านซับสไครบ์เบอร์</p>
     </div>
     <div
-      class="flex gap-4 md:gap-8 items-center bg-black/30 p-3 md:p-4 rounded-2xl border border-white/5 shadow-inner w-full md:w-auto justify-around relative z-20">
-      <div class="flex flex-col items-center">
-        <span class="text-xs text-gray-400 uppercase tracking-widest font-bold">ยอดวิวรวม</span>
-        <span id="total-views" class="text-3xl font-bold text-white tracking-tight shrink-0 flex items-center gap-2">
-          <i class="fa-solid fa-eye text-purple-400 text-xl"></i> 0
+      class="flex gap-2 md:gap-4 items-center bg-black/30 p-2 md:p-4 rounded-xl md:rounded-2xl border border-white/5 shadow-inner w-full md:w-auto justify-around relative z-20 flex-wrap">
+      <div class="flex flex-col items-center flex-1 min-w-[80px]">
+        <span class="text-[10px] md:text-xs text-blue-400 uppercase tracking-widest font-bold">ระดับช่อง</span>
+        <span id="tier-name"
+          class="text-sm md:text-xl font-bold text-white tracking-tight shrink-0 flex items-center gap-1 md:gap-2">
+          <i class="fa-solid fa-trophy text-blue-400 text-sm md:text-xl"></i> เริ่มทำช่อง
         </span>
       </div>
-      <div class="w-px h-10 bg-white/10"></div>
-      <div class="flex flex-col items-center">
-        <span class="text-xs text-gray-400 uppercase tracking-widest font-bold">วิว / วินาที</span>
-        <span id="views-per-sec" class="text-3xl font-bold text-gray-200 shrink-0 flex items-center gap-2">
-          <i class="fa-solid fa-bolt text-yellow-400 text-xl"></i> 0
+      <div class="w-px h-6 md:h-10 bg-white/10 hidden md:block"></div>
+      <div class="flex flex-col items-center flex-1 min-w-[80px]">
+        <span class="text-[10px] md:text-xs text-sky-400 uppercase tracking-widest font-bold">เพชร</span>
+        <span id="diamond-count"
+          class="text-lg md:text-3xl font-bold text-sky-300 tracking-tight shrink-0 flex items-center gap-1 md:gap-2">
+          <i class="fa-regular fa-gem text-sky-400 text-sm md:text-xl"></i> 0
         </span>
       </div>
-      <div class="w-px h-10 bg-white/10"></div>
-      <div class="flex flex-col items-center">
-        <span class="text-xs text-pink-400 uppercase tracking-widest font-bold">ผู้ติดตาม</span>
-        <span id="total-subs" class="text-3xl font-bold text-pink-500 shrink-0 flex items-center gap-2">
-          <i class="fa-solid fa-users text-pink-400 text-xl"></i> 0
+      <div class="w-px h-6 md:h-10 bg-white/10"></div>
+      <div class="flex flex-col items-center flex-1 min-w-[80px]">
+        <span class="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest font-bold">ยอดวิวรวม</span>
+        <span id="total-views"
+          class="text-lg md:text-3xl font-bold text-white tracking-tight shrink-0 flex items-center gap-1 md:gap-2">
+          <i class="fa-solid fa-eye text-purple-400 text-sm md:text-xl"></i> 0
         </span>
       </div>
+      <div class="w-px h-6 md:h-10 bg-white/10"></div>
+      <div class="flex flex-col items-center flex-1 min-w-[80px]">
+        <span class="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest font-bold">วิว / วินาที</span>
+        <span id="views-per-sec"
+          class="text-lg md:text-3xl font-bold text-gray-200 shrink-0 flex items-center gap-1 md:gap-2">
+          <i class="fa-solid fa-bolt text-yellow-400 text-sm md:text-xl"></i> 0
+        </span>
+      </div>
+      <div class="w-px h-6 md:h-10 bg-white/10"></div>
+      <div class="flex flex-col items-center flex-1 min-w-[80px]">
+        <span class="text-[10px] md:text-xs text-pink-400 uppercase tracking-widest font-bold">ผู้ติดตาม</span>
+        <span id="total-subs"
+          class="text-lg md:text-3xl font-bold text-pink-500 shrink-0 flex items-center gap-1 md:gap-2">
+          <i class="fa-solid fa-users text-pink-400 text-sm md:text-xl"></i> 0
+        </span>
+      </div>
+      <!-- Missions Button -->
+      <button id="open-missions-btn"
+        class="absolute -bottom-5 left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:ml-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
+        <i class="fa-solid fa-list-check"></i> ภารกิจ
+      </button>
     </div>
   </header>
 
@@ -86,6 +110,20 @@
         class="mt-2 text-xs md:text-sm text-purple-300 bg-purple-900/40 px-4 py-1 rounded-full border border-purple-500/30">
         <span id="click-power">1</span> วิว / คลิก
       </p>
+
+      <!-- Energy Bar -->
+      <div class="mt-8 w-64 md:w-80">
+        <div class="flex justify-between items-end mb-1">
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider"><i
+              class="fa-solid fa-battery-full"></i> พลังงาน</span>
+          <span id="energy-text" class="text-xs text-gray-400">100 / 100</span>
+        </div>
+        <div class="h-3 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+          <div id="energy-bar"
+            class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-full transition-all duration-100 shadow-[0_0_10px_rgba(56,189,248,0.5)]">
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Right Panel: Upgrades -->
@@ -110,6 +148,64 @@
       class="floating-text absolute cursor-default pointer-events-none text-2xl font-bold text-white drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] z-50">
     </div>
   </template>
+
+  <!-- Events UI -->
+  <button id="viral-btn"
+    class="hidden absolute z-50 w-24 h-24 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow-[0_0_30px_rgba(255,165,0,0.8)] border-4 border-white flex flex-col items-center justify-center transform hover:scale-110 active:scale-90 transition-transform animate-pulse cursor-pointer">
+    <i class="fa-solid fa-fire text-3xl text-white mb-1"></i>
+    <span class="text-xs font-bold text-white tracking-widest uppercase">ไวรัล!</span>
+  </button>
+
+  <div id="drama-overlay"
+    class="hidden fixed inset-0 z-40 bg-red-900/60 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity duration-300">
+    <div class="absolute inset-0 animate-pulse bg-red-600/20 pointer-events-none"></div>
+    <div
+      class="bg-black/80 border-2 border-red-500 p-8 rounded-3xl text-center max-w-sm shadow-[0_0_50px_rgba(239,68,68,0.5)] relative z-10 w-11/12">
+      <i class="fa-solid fa-triangle-exclamation text-6xl text-red-500 mb-4 animate-bounce"></i>
+      <h2 class="text-3xl font-black text-red-500 mb-2">ดราม่าทัวร์ลง!</h2>
+      <p class="text-gray-300 mb-6">ยอดวิวตก 50% แล้ว! รีบอัดคลิปขอโทษด่วน!</p>
+
+      <div id="drama-progress-container"
+        class="w-full h-4 bg-gray-800 rounded-full mb-4 overflow-hidden border border-gray-600">
+        <div id="drama-progress-bar" class="h-full bg-green-500 w-0 transition-all duration-100"></div>
+      </div>
+
+      <button id="apology-btn"
+        class="w-full py-4 bg-red-600 hover:bg-red-500 active:bg-red-700 rounded-xl text-xl font-bold text-white transition-colors">
+        <i class="fa-solid fa-video"></i> อัดคลิปขอโทษ!
+      </button>
+      <p class="text-xs text-gray-400 mt-4">คลิกรัวๆ เพื่อกู้สถานการณ์! (เหลือ <span id="drama-timer">10</span> วิ)</p>
+    </div>
+  </div>
+
+  <!-- Missions Modal -->
+  <div id="missions-modal"
+    class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity">
+    <div class="bg-slate-900 border border-white/10 p-6 md:p-8 rounded-3xl w-11/12 max-w-lg shadow-2xl relative">
+      <button id="close-missions-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-2xl"></i>
+      </button>
+
+      <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
+        <i class="fa-solid fa-list-check text-blue-400"></i> ภารกิจรายวัน
+      </h2>
+      <p class="text-sm text-gray-400 mb-6">ทำภารกิจให้สำเร็จเพื่อรับเพชรฟรี!</p>
+
+      <div id="missions-list" class="space-y-4">
+        <!-- Missions injected via JS -->
+      </div>
+
+      <div class="mt-8 pt-6 border-t border-white/10">
+        <h3 class="font-bold text-sky-300 mb-2 flex items-center gap-2"><i class="fa-regular fa-gem"></i> ร้านค้าเพชร
+        </h3>
+        <button id="buy-energy-btn"
+          class="w-full flex items-center justify-between bg-blue-900/40 hover:bg-blue-800/60 border border-blue-500/30 p-3 rounded-xl transition-colors">
+          <span class="font-bold"><i class="fa-solid fa-battery-full text-blue-400"></i> ฟื้นฟูพลังงานเต็ม</span>
+          <span class="bg-black/50 px-3 py-1 rounded-full text-sky-300 font-bold text-sm">10 เพชร</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script src="main.js"></script>
 </body>
