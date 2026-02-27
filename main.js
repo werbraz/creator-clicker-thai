@@ -12,6 +12,7 @@ let state = {
     tierName: 'เริ่มทำช่อง',
     viralActive: false,
     dramaActive: false,
+    autoClickPaused: false,
     missions: [],
     lastSaved: Date.now()
 };
@@ -158,7 +159,12 @@ const els = {
     closeMissionsBtn: document.getElementById('close-missions-btn'),
     missionsModal: document.getElementById('missions-modal'),
     missionsList: document.getElementById('missions-list'),
-    buyEnergyBtn: document.getElementById('buy-energy-btn')
+    buyEnergyBtn: document.getElementById('buy-energy-btn'),
+
+    // Toggles
+    toggleAutoClickBtn: document.getElementById('toggle-autoclick-btn'),
+    autoClickIcon: document.getElementById('autoclick-icon'),
+    autoClickStatus: document.getElementById('autoclick-status')
 };
 
 // Config
@@ -287,6 +293,32 @@ function updateUI() {
     if (els.tierName) els.tierName.innerText = state.tierName;
     if (els.energyText) els.energyText.innerText = `${Math.floor(state.energy)} / ${state.maxEnergy}`;
     if (els.energyBar) els.energyBar.style.width = `${(state.energy / state.maxEnergy) * 100}%`;
+
+    // Toggle Auto Click Button Visibility & State
+    if (els.toggleAutoClickBtn) {
+        if (state.autoClicksPerSecond > 0) {
+            els.toggleAutoClickBtn.classList.remove('hidden');
+            if (state.autoClickPaused) {
+                // Currently Paused -> Show "Resume" UI
+                els.toggleAutoClickBtn.classList.replace('bg-green-600/50', 'bg-red-600/50');
+                els.toggleAutoClickBtn.classList.replace('hover:bg-green-500/80', 'hover:bg-red-500/80');
+                els.toggleAutoClickBtn.classList.replace('text-green-200', 'text-red-200');
+                els.toggleAutoClickBtn.classList.replace('border-green-500/50', 'border-red-500/50');
+                els.autoClickIcon.className = "fa-solid fa-pause";
+                els.autoClickStatus.innerText = "ปิดออโต้คลิกอยู่";
+            } else {
+                // Currently Active -> Show "Active" UI
+                els.toggleAutoClickBtn.classList.replace('bg-red-600/50', 'bg-green-600/50');
+                els.toggleAutoClickBtn.classList.replace('hover:bg-red-500/80', 'hover:bg-green-500/80');
+                els.toggleAutoClickBtn.classList.replace('text-red-200', 'text-green-200');
+                els.toggleAutoClickBtn.classList.replace('border-red-500/50', 'border-green-500/50');
+                els.autoClickIcon.className = "fa-solid fa-play";
+                els.autoClickStatus.innerText = "เปิดออโต้คลิกอยู่";
+            }
+        } else {
+            els.toggleAutoClickBtn.classList.add('hidden');
+        }
+    }
 
     // Update upgrade buttons affordability
     upgrades.forEach(upg => {
@@ -421,6 +453,14 @@ els.mainBtn.addEventListener('click', (e) => {
     }
 });
 
+if (els.toggleAutoClickBtn) {
+    els.toggleAutoClickBtn.addEventListener('click', () => {
+        state.autoClickPaused = !state.autoClickPaused;
+        updateUI();
+        saveGame();
+    });
+}
+
 // Loops
 setInterval(() => {
     // Energy Regen
@@ -443,7 +483,7 @@ setInterval(() => {
 // Auto Click Loop
 let autoClickAccumulator = 0;
 setInterval(() => {
-    if (state.autoClicksPerSecond > 0) {
+    if (state.autoClicksPerSecond > 0 && !state.autoClickPaused) {
         const clicksPerIter = state.autoClicksPerSecond / 10; // since loop runs 10 times a sec
         autoClickAccumulator += clicksPerIter;
 
