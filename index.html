@@ -74,30 +74,34 @@
           <i class="fa-solid fa-users text-pink-400 text-sm md:text-xl"></i> 0
         </span>
       </div>
+      <!-- Mobile Menu Toggle Button -->
+      <button id="mobile-menu-btn"
+        class="absolute -bottom-10 right-4 md:hidden bg-slate-800 border border-white/20 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
       <!-- Feature Buttons container -->
-      <div
-        class="absolute -bottom-10 md:bottom-auto left-0 right-0 flex justify-center gap-1.5 md:gap-2 flex-wrap px-2 md:static md:translate-x-0 md:ml-4 z-10 w-full overflow-hidden">
+      <div id="feature-buttons-container"
+        class="hidden md:flex absolute top-full right-4 mt-2 md:static md:mt-0 bg-slate-900/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-none rounded-2xl md:rounded-none p-3 md:p-0 flex-col md:flex-row justify-center gap-2 md:translate-x-0 md:ml-4 z-20 shadow-xl md:shadow-none w-48 md:w-auto">
         <!-- Missions Button -->
         <button id="open-missions-btn"
-          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
-          <i class="fa-solid fa-list-check text-xs md:text-base"></i> <span>ภารกิจ</span>
+          class="w-full md:w-auto min-w-[100px] bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-2 rounded-xl md:rounded-full text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2 justify-start md:justify-center">
+          <i class="fa-solid fa-list-check w-5 text-center"></i> <span>ภารกิจ</span>
         </button>
         <!-- Inventory Button -->
         <button id="open-inventory-btn"
-          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
-          <i class="fa-solid fa-briefcase text-xs md:text-base"></i> <span class="leading-tight text-center">คลัง<br
-              class="md:hidden">อุปกรณ์</span>
+          class="w-full md:w-auto min-w-[100px] bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white px-4 py-2 rounded-xl md:rounded-full text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2 justify-start md:justify-center">
+          <i class="fa-solid fa-briefcase w-5 text-center"></i> <span>คลังอุปกรณ์</span>
         </button>
         <!-- Gacha Button -->
         <button id="open-gacha-btn"
-          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/30 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
-          <i class="fa-solid fa-box-open text-xs md:text-base"></i> <span class="leading-tight text-center">สุ่ม<br
-              class="md:hidden">ตู้</span>
+          class="w-full md:w-auto min-w-[100px] bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white px-4 py-2 rounded-xl md:rounded-full text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/30 transition-transform active:scale-95 flex items-center gap-2 justify-start md:justify-center">
+          <i class="fa-solid fa-box-open w-5 text-center"></i> <span>สุ่มตู้</span>
         </button>
         <!-- Achievements Button -->
         <button id="open-achievements-btn"
-          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
-          <i class="fa-solid fa-medal text-xs md:text-base"></i> <span>ฉายา</span>
+          class="w-full md:w-auto min-w-[100px] bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-4 py-2 rounded-xl md:rounded-full text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2 justify-start md:justify-center">
+          <i class="fa-solid fa-medal w-5 text-center"></i> <span>ฉายา</span>
         </button>
       </div>
     </div>

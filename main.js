@@ -257,7 +257,11 @@ const els = {
     openInventoryBtn: document.getElementById('open-inventory-btn'),
     closeInventoryBtn: document.getElementById('close-inventory-btn'),
     inventoryModal: document.getElementById('inventory-modal'),
-    inventoryList: document.getElementById('inventory-list')
+    inventoryList: document.getElementById('inventory-list'),
+
+    // Mobile Menu
+    mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+    featureButtonsContainer: document.getElementById('feature-buttons-container')
 };
 
 // Config
@@ -1110,6 +1114,21 @@ if (els.openInventoryBtn) {
         els.inventoryModal.classList.remove('hidden');
     };
     els.closeInventoryBtn.onclick = () => els.inventoryModal.classList.add('hidden');
+}
+
+if (els.mobileMenuBtn) {
+    els.mobileMenuBtn.onclick = () => {
+        els.featureButtonsContainer.classList.toggle('hidden');
+        els.featureButtonsContainer.classList.toggle('flex');
+    };
+
+    // Close menu when clicking outside (on clicker area)
+    els.clickerArea.addEventListener('click', () => {
+        if (!els.featureButtonsContainer.classList.contains('hidden') && window.innerWidth < 768) {
+            els.featureButtonsContainer.classList.add('hidden');
+            els.featureButtonsContainer.classList.remove('flex');
+        }
+    });
 }
 
 
