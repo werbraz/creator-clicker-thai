@@ -16,6 +16,12 @@ let state = {
     totalClicks: 0,
     equippedTitle: null,
     achievements: [],
+    inventory: [],
+    equippedGear: {
+        mic: null,
+        camera: null,
+        backdrop: null
+    },
     missions: [],
     offlineCapHours: 2,
     lastSaved: Date.now()
@@ -148,6 +154,41 @@ const upgrades = [
     }
 ];
 
+// Gacha Equipment Pool
+const gachaPool = [
+    // Mics
+    { id: 'mic_n', name: 'ไมค์มือสอง', type: 'mic', rarity: 'N', buffType: 'click', buffValue: 1.05, desc: '+5% วิว/คลิก' },
+    { id: 'mic_r', name: 'ไมค์ตั้งโต๊ะ RGB', type: 'mic', rarity: 'R', buffType: 'click', buffValue: 1.15, desc: '+15% วิว/คลิก' },
+    { id: 'mic_sr', name: 'ไมค์คอนเดนเซอร์โปร', type: 'mic', rarity: 'SR', buffType: 'click', buffValue: 1.5, desc: '+50% วิว/คลิก' },
+    { id: 'mic_ssr', name: 'ไมค์ทองคำฝังเพชร', type: 'mic', rarity: 'SSR', buffType: 'click', buffValue: 3, desc: '+200% วิว/คลิก' },
+
+    // Cameras
+    { id: 'cam_n', name: 'กล้องมือถือเก่า', type: 'camera', rarity: 'N', buffType: 'idle', buffValue: 1.05, desc: '+5% วิว/วินาที' },
+    { id: 'cam_r', name: 'เว็บแคม 1080p', type: 'camera', rarity: 'R', buffType: 'idle', buffValue: 1.15, desc: '+15% วิว/วินาที' },
+    { id: 'cam_sr', name: 'กล้อง Mirrorless 4K', type: 'camera', rarity: 'SR', buffType: 'idle', buffValue: 1.5, desc: '+50% วิว/วินาที' },
+    { id: 'cam_ssr', name: 'กล้องถ่ายหนังสเปรดท็อป', type: 'camera', rarity: 'SSR', buffType: 'idle', buffValue: 3, desc: '+200% วิว/วินาที' },
+
+    // Backdrops
+    { id: 'bg_n', name: 'ฉากฝาบ้าน', type: 'backdrop', rarity: 'N', buffType: 'global', buffValue: 1.01, desc: '+1% ทุกยอดวิว' },
+    { id: 'bg_r', name: 'ฉากกระดาษสี', type: 'backdrop', rarity: 'R', buffType: 'global', buffValue: 1.05, desc: '+5% ทุกยอดวิว' },
+    { id: 'bg_sr', name: 'ห้องไฟสลัว RGB', type: 'backdrop', rarity: 'SR', buffType: 'global', buffValue: 1.2, desc: '+20% ทุกยอดวิว' },
+    { id: 'bg_ssr', name: 'สตูฯ หรูวิวตึกระฟ้า', type: 'backdrop', rarity: 'SSR', buffType: 'global', buffValue: 2, desc: '+100% ทุกยอดวิว' }
+];
+
+const rarityColors = {
+    'N': 'text-gray-400',
+    'R': 'text-blue-400',
+    'SR': 'text-fuchsia-400',
+    'SSR': 'text-yellow-400 font-extrabold drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]'
+};
+
+const rarityBorders = {
+    'N': 'border-gray-600 bg-gray-900/50',
+    'R': 'border-blue-500 bg-blue-900/30',
+    'SR': 'border-fuchsia-500 bg-fuchsia-900/30 shadow-[0_0_10px_rgba(217,70,239,0.3)]',
+    'SSR': 'border-yellow-400 bg-yellow-900/40 shadow-[0_0_20px_rgba(250,204,21,0.5)]'
+};
+
 // Achievements Configuration
 const allAchievements = [
     { id: 'first_click', name: 'ก้าวแรก', desc: 'คลิกครบ 100 ครั้ง', type: 'clicks', target: 100, title: 'มือใหม่หัดคลิก', buffType: 'click', buffValue: 1.1, buffText: '+10% ยอดวิวต่อคลิก' },
@@ -202,7 +243,16 @@ const els = {
     achievementsModal: document.getElementById('achievements-modal'),
     achievementsList: document.getElementById('achievements-list'),
     currentTitleDisplay: document.getElementById('current-title-display'),
-    currentTitleBuff: document.getElementById('current-title-buff')
+    currentTitleBuff: document.getElementById('current-title-buff'),
+
+    // Gacha UI
+    openGachaBtn: document.getElementById('open-gacha-btn'),
+    closeGachaBtn: document.getElementById('close-gacha-btn'),
+    gachaModal: document.getElementById('gacha-modal'),
+    roll1Btn: document.getElementById('roll-1-btn'),
+    roll10Btn: document.getElementById('roll-10-btn'),
+    rollResultArea: document.getElementById('roll-result-area'),
+    inventoryList: document.getElementById('inventory-list')
 };
 
 // Config
@@ -306,6 +356,16 @@ function recalculateStats() {
             activeTitleBuffs[ach.buffType] = ach.buffValue;
         }
     }
+
+    // Apply Gear Buffs
+    Object.values(state.equippedGear).forEach(itemId => {
+        if (itemId) {
+            const gear = gachaPool.find(g => g.id === itemId);
+            if (gear) {
+                activeTitleBuffs[gear.buffType] *= gear.buffValue; // Multiply with title buffs
+            }
+        }
+    });
 }
 
 function getUpgradeCost(upg) {
@@ -905,6 +965,125 @@ function checkAchievements() {
         if (els.achievementsModal && !els.achievementsModal.classList.contains('hidden')) renderAchievements();
         saveGame();
     }
+}
+
+
+// ================= GACHA SYSTEM =================
+
+function rollGacha() {
+    const rand = Math.random() * 100;
+    let rarity = 'N';
+    if (rand < 1) rarity = 'SSR';       // 1%
+    else if (rand < 10) rarity = 'SR';  // 9%
+    else if (rand < 40) rarity = 'R';   // 30%
+    else rarity = 'N';                  // 60%
+
+    // Filter pool by rarity
+    const possibleItems = gachaPool.filter(g => g.rarity === rarity);
+    const item = possibleItems[Math.floor(Math.random() * possibleItems.length)];
+
+    return item;
+}
+
+function handleRoll(amount) {
+    const cost = amount === 1 ? 50 : 450;
+
+    if (state.diamonds < cost) {
+        alert('เพชรไม่พอ!');
+        return;
+    }
+
+    state.diamonds -= cost;
+    els.rollResultArea.innerHTML = '';
+
+    const results = [];
+    for (let i = 0; i < amount; i++) {
+        const item = rollGacha();
+        results.push(item);
+
+        // Add to inventory if not already owned
+        if (!state.inventory.includes(item.id)) {
+            state.inventory.push(item.id);
+        } else {
+            // Duplicate = refund 5 diamonds
+            state.diamonds += 5;
+        }
+    }
+
+    // Display Results with staggered animation
+    results.forEach((item, index) => {
+        setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = `flex flex-col items-center justify-center min-w-[60px] p-2 border rounded-lg ${rarityBorders[item.rarity]} animate-bounce`;
+            div.innerHTML = `
+                <span class="text-xs ${rarityColors[item.rarity]}">${item.rarity}</span>
+                <span class="text-[10px] text-white text-center line-clamp-1 truncate w-full">${item.name}</span>
+            `;
+            els.rollResultArea.appendChild(div);
+        }, index * 150); // Stagger by 150ms
+    });
+
+    renderInventory();
+    updateUI();
+    saveGame();
+}
+
+function equipGear(itemId, type) {
+    if (state.equippedGear[type] === itemId) {
+        // Unequip if already equipped
+        state.equippedGear[type] = null;
+    } else {
+        state.equippedGear[type] = itemId;
+    }
+    recalculateStats();
+    updateUI();
+    renderInventory();
+    saveGame();
+}
+
+function renderInventory() {
+    if (!els.inventoryList) return;
+    els.inventoryList.innerHTML = '';
+
+    if (state.inventory.length === 0) {
+        els.inventoryList.innerHTML = '<div class="text-center text-xs text-gray-500 pt-10">ยังไม่มีอุปกรณ์ ลองใช้เพชรสุ่มดูสิ!</div>';
+        return;
+    }
+
+    // Group by owned status and type
+    state.inventory.forEach(itemId => {
+        const item = gachaPool.find(g => g.id === itemId);
+        if (!item) return;
+
+        const isEquipped = state.equippedGear[item.type] === item.id;
+
+        const card = document.createElement('div');
+        card.className = `p-2 rounded-xl flex justify-between items-center ${rarityBorders[item.rarity]} ${isEquipped ? 'ring-2 ring-white/50' : 'opacity-80'}`;
+
+        card.innerHTML = `
+            <div>
+                <p class="text-xs font-bold ${rarityColors[item.rarity]}">${item.rarity} | <span class="text-white">${item.name}</span></p>
+                <p class="text-[10px] text-green-300">${item.desc}</p>
+            </div>
+            <button class="px-3 py-1 text-[10px] font-bold rounded-lg transition-colors ${isEquipped ? 'bg-red-500/50 hover:bg-red-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'}">
+                ${isEquipped ? 'ถอด' : 'สวมใส่'}
+            </button>
+        `;
+
+        card.querySelector('button').onclick = () => equipGear(item.id, item.type);
+        els.inventoryList.appendChild(card);
+    });
+}
+
+if (els.openGachaBtn) {
+    els.openGachaBtn.onclick = () => {
+        renderInventory();
+        els.gachaModal.classList.remove('hidden');
+    };
+    els.closeGachaBtn.onclick = () => els.gachaModal.classList.add('hidden');
+
+    els.roll1Btn.onclick = () => handleRoll(1);
+    els.roll10Btn.onclick = () => handleRoll(10);
 }
 
 
