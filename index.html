@@ -81,6 +81,11 @@
           class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
           <i class="fa-solid fa-list-check"></i> ภารกิจ
         </button>
+        <!-- Inventory Button -->
+        <button id="open-inventory-btn"
+          class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-briefcase"></i> คลังอุปกรณ์
+        </button>
         <!-- Gacha Button -->
         <button id="open-gacha-btn"
           class="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/30 transition-transform active:scale-95 flex items-center gap-2">
@@ -260,7 +265,7 @@
   <div id="gacha-modal"
     class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center transition-opacity p-4">
     <div
-      class="bg-slate-900 border border-pink-500/30 p-6 md:p-8 rounded-3xl w-full max-w-4xl shadow-[0_0_50px_rgba(236,72,153,0.3)] relative max-h-[90vh] flex flex-col md:flex-row gap-6">
+      class="bg-slate-900 border border-pink-500/30 p-6 md:p-8 rounded-3xl w-11/12 max-w-lg shadow-[0_0_50px_rgba(236,72,153,0.3)] relative max-h-[90vh] flex flex-col gap-6">
       <button id="close-gacha-btn"
         class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10 w-8 h-8 flex justify-center items-center bg-black/50 rounded-full">
         <i class="fa-solid fa-xmark text-xl"></i>
@@ -311,18 +316,25 @@
           <span class="text-gray-500 text-sm">ผลลัพธ์การสุ่มจะแสดงที่นี่..</span>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Right Panel: Inventory & Equip -->
-      <div
-        class="md:w-72 bg-black/40 rounded-2xl border border-white/5 flex flex-col overflow-hidden max-h-[40vh] md:max-h-full">
-        <div
-          class="p-3 bg-white/5 border-b border-white/10 font-bold text-sm text-center tracking-widest text-sky-400 uppercase flex items-center justify-center gap-2">
-          <i class="fa-solid fa-briefcase"></i> คลังอุปกรณ์
-        </div>
-        <div id="inventory-list" class="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
-          <!-- Inventory injected here via JS -->
-          <div class="text-center text-xs text-gray-500 pt-10">ยังไม่มีอุปกรณ์ ลองใช้เพชรสุ่มดูสิ!</div>
-        </div>
+  <!-- Inventory Modal -->
+  <div id="inventory-modal"
+    class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity">
+    <div
+      class="bg-slate-900 border border-white/10 p-6 md:p-8 rounded-3xl w-11/12 max-w-lg shadow-2xl relative max-h-[80vh] flex flex-col">
+      <button id="close-inventory-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-2xl"></i>
+      </button>
+
+      <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
+        <i class="fa-solid fa-briefcase text-teal-400"></i> คลังอุปกรณ์
+      </h2>
+      <p class="text-sm text-gray-400 mb-6">สวมใส่อุปกรณ์เพื่อรับโบนัสยอดวิวแบบทวีคูณ!</p>
+
+      <div id="inventory-list" class="space-y-3 overflow-y-auto flex-1 custom-scrollbar pr-2">
+        <!-- Inventory injected via JS -->
       </div>
     </div>
   </div>

@@ -252,6 +252,11 @@ const els = {
     roll1Btn: document.getElementById('roll-1-btn'),
     roll10Btn: document.getElementById('roll-10-btn'),
     rollResultArea: document.getElementById('roll-result-area'),
+
+    // Inventory UI
+    openInventoryBtn: document.getElementById('open-inventory-btn'),
+    closeInventoryBtn: document.getElementById('close-inventory-btn'),
+    inventoryModal: document.getElementById('inventory-modal'),
     inventoryList: document.getElementById('inventory-list')
 };
 
@@ -396,12 +401,15 @@ function checkTiers() {
             state.energy = state.maxEnergy;
             state.tierName = nextTier.name;
             state.tierMultiplier = nextTier.mult;
+            state.inventory = [];
+            state.equippedGear = { mic: null, camera: null, backdrop: null };
 
             // Reset Upgrades
             upgrades.forEach(u => u.level = 0);
 
             recalculateStats();
             renderUpgrades();
+            if (els.inventoryList) renderInventory();
             updateUI();
             saveGame();
             alert('รีเซ็ตช่องสำเร็จ! เริ่มต้นตำนานบทใหม่พร้อมตัวคูณมหาศาล!');
@@ -1088,13 +1096,20 @@ function renderInventory() {
 
 if (els.openGachaBtn) {
     els.openGachaBtn.onclick = () => {
-        renderInventory();
         els.gachaModal.classList.remove('hidden');
     };
     els.closeGachaBtn.onclick = () => els.gachaModal.classList.add('hidden');
 
     els.roll1Btn.onclick = () => handleRoll(1);
     els.roll10Btn.onclick = () => handleRoll(10);
+}
+
+if (els.openInventoryBtn) {
+    els.openInventoryBtn.onclick = () => {
+        renderInventory();
+        els.inventoryModal.classList.remove('hidden');
+    };
+    els.closeInventoryBtn.onclick = () => els.inventoryModal.classList.add('hidden');
 }
 
 
