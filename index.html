@@ -75,26 +75,29 @@
         </span>
       </div>
       <!-- Feature Buttons container -->
-      <div class="absolute -bottom-5 left-0 right-0 flex justify-center gap-2 md:static md:translate-x-0 md:ml-4">
+      <div
+        class="absolute -bottom-10 md:bottom-auto left-0 right-0 flex justify-center gap-1.5 md:gap-2 flex-wrap px-2 md:static md:translate-x-0 md:ml-4 z-10 w-full overflow-hidden">
         <!-- Missions Button -->
         <button id="open-missions-btn"
-          class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
-          <i class="fa-solid fa-list-check"></i> ภารกิจ
+          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
+          <i class="fa-solid fa-list-check text-xs md:text-base"></i> <span>ภารกิจ</span>
         </button>
         <!-- Inventory Button -->
         <button id="open-inventory-btn"
-          class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
-          <i class="fa-solid fa-briefcase"></i> คลังอุปกรณ์
+          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
+          <i class="fa-solid fa-briefcase text-xs md:text-base"></i> <span class="leading-tight text-center">คลัง<br
+              class="md:hidden">อุปกรณ์</span>
         </button>
         <!-- Gacha Button -->
         <button id="open-gacha-btn"
-          class="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/30 transition-transform active:scale-95 flex items-center gap-2">
-          <i class="fa-solid fa-box-open"></i> สุ่มตู้
+          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/30 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
+          <i class="fa-solid fa-box-open text-xs md:text-base"></i> <span class="leading-tight text-center">สุ่ม<br
+              class="md:hidden">ตู้</span>
         </button>
         <!-- Achievements Button -->
         <button id="open-achievements-btn"
-          class="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
-          <i class="fa-solid fa-medal"></i> ฉายา
+          class="flex-1 min-w-[70px] max-w-[100px] md:max-w-none bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-full text-[10px] md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex flex-col md:flex-row items-center justify-center gap-1">
+          <i class="fa-solid fa-medal text-xs md:text-base"></i> <span>ฉายา</span>
         </button>
       </div>
     </div>
