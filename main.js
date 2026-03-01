@@ -281,7 +281,14 @@ function loadGame() {
     const savedState = localStorage.getItem('creatorClickerState');
     const savedUpgrades = localStorage.getItem('creatorClickerUpgrades');
     if (savedState) {
-        state = { ...state, ...JSON.parse(savedState) };
+        const parsedState = JSON.parse(savedState);
+        state = { ...state, ...parsedState };
+
+        // Ensure new V3 objects exist even for old saves
+        if (!state.equippedGear) state.equippedGear = { mic: null, camera: null, backdrop: null };
+        if (!state.inventory) state.inventory = [];
+        if (!state.achievements) state.achievements = [];
+        if (!state.totalClicks) state.totalClicks = 0;
         // offline progress
         const now = Date.now();
         let diffSecs = (now - state.lastSaved) / 1000;
@@ -1070,7 +1077,11 @@ function renderInventory() {
             </button>
         `;
 
-        card.querySelector('button').onclick = () => equipGear(item.id, item.type);
+        // Direct event listener attachment
+        card.querySelector('button').addEventListener('click', (e) => {
+            e.stopPropagation(); // prevent any bubble
+            equipGear(item.id, item.type);
+        });
         els.inventoryList.appendChild(card);
     });
 }
