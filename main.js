@@ -13,7 +13,11 @@ let state = {
     viralActive: false,
     dramaActive: false,
     autoClickPaused: false,
+    totalClicks: 0,
+    equippedTitle: null,
+    achievements: [],
     missions: [],
+    offlineCapHours: 2,
     lastSaved: Date.now()
 };
 
@@ -38,7 +42,8 @@ const upgradeTypes = {
     IDLE: 'idle',
     AUTO_CLICK: 'auto_click',
     MAX_ENERGY: 'max_energy',
-    ENERGY_REGEN: 'energy_regen'
+    ENERGY_REGEN: 'energy_regen',
+    MANAGER: 'manager'
 };
 
 const upgrades = [
@@ -129,8 +134,33 @@ const upgrades = [
         power: 50,
         icon: 'fa-microphone',
         level: 0
+    },
+    {
+        id: 'manager_silver',
+        name: 'จ้างผู้จัดการส่วนตัว',
+        description: 'เพิ่มขีดจำกัดสะสมยอดวิวออฟไลน์เป็น 10 ชั่วโมง',
+        type: upgradeTypes.MANAGER,
+        baseCost: 20000,
+        costMultiplier: 1.5,
+        power: 8, // +8 hours
+        icon: 'fa-user-tie',
+        level: 0
     }
 ];
+
+// Achievements Configuration
+const allAchievements = [
+    { id: 'first_click', name: 'ก้าวแรก', desc: 'คลิกครบ 100 ครั้ง', type: 'clicks', target: 100, title: 'มือใหม่หัดคลิก', buffType: 'click', buffValue: 1.1, buffText: '+10% ยอดวิวต่อคลิก' },
+    { id: 'million_views', name: 'ล้านแตก!', desc: 'สะสมยอดวิวครบ 1,000,000', type: 'total_views', target: 1000000, title: 'ดาวรุ่งพุ่งแรง', buffType: 'idle', buffValue: 1.2, buffText: '+20% ยอดวิวพื้นฐาน/วิ' },
+    { id: 'sub_1k', name: 'ชุมชนคนดู', desc: 'ผู้ติดตามครบ 1,000 คน', type: 'subs', target: 1000, title: 'ขวัญใจคนดู', buffType: 'global', buffValue: 1.05, buffText: '+5% คูญวิวทั้งหมด' },
+    { id: 'max_energy', name: 'คนบ้าพลัง', desc: 'มีพลังงานสูงสุดระดับ 300+', type: 'max_energy', target: 300, title: 'เครื่องจักรสังหาร', buffType: 'click', buffValue: 1.5, buffText: '+50% ยอดวิวต่อคลิก' }
+];
+
+let activeTitleBuffs = {
+    click: 1,
+    idle: 1,
+    global: 1
+};
 
 // DOM Elements
 const els = {
@@ -164,7 +194,15 @@ const els = {
     // Toggles
     toggleAutoClickBtn: document.getElementById('toggle-autoclick-btn'),
     autoClickIcon: document.getElementById('autoclick-icon'),
-    autoClickStatus: document.getElementById('autoclick-status')
+    autoClickStatus: document.getElementById('autoclick-status'),
+
+    // Achievements UI
+    openAchievementsBtn: document.getElementById('open-achievements-btn'),
+    closeAchievementsBtn: document.getElementById('close-achievements-btn'),
+    achievementsModal: document.getElementById('achievements-modal'),
+    achievementsList: document.getElementById('achievements-list'),
+    currentTitleDisplay: document.getElementById('current-title-display'),
+    currentTitleBuff: document.getElementById('current-title-buff')
 };
 
 // Config
@@ -196,12 +234,30 @@ function loadGame() {
         state = { ...state, ...JSON.parse(savedState) };
         // offline progress
         const now = Date.now();
-        const diffSecs = (now - state.lastSaved) / 1000;
+        let diffSecs = (now - state.lastSaved) / 1000;
+
+        // Ensure offline cap is calculated first
+        let currentOfflineCapHours = 2; // base cap
+        if (savedUpgrades) {
+            const parsedUpg = JSON.parse(savedUpgrades);
+            const managerUpg = parsedUpg.find(u => u.id === 'manager_silver');
+            if (managerUpg) {
+                currentOfflineCapHours += (managerUpg.level * 8); // Manager power
+            }
+        }
+
+        const maxOfflineSecs = currentOfflineCapHours * 3600;
+        let cappedLine = '';
+        if (diffSecs > maxOfflineSecs) {
+            diffSecs = maxOfflineSecs;
+            cappedLine = `\n(รับรายได้ออฟไลน์สูงสุด ${currentOfflineCapHours} ชั่วโมง)`;
+        }
+
         if (diffSecs > 0 && state.viewsPerSecond > 0) {
             const idleGains = state.viewsPerSecond * diffSecs;
             state.views += idleGains;
             state.totalViews += idleGains;
-            console.log(`ยินดีต้อนรับกลับมา! คุณได้ยอดวิว ${Math.floor(idleGains)} วิวจากตอนที่ออฟไลน์ไป`);
+            console.log(`ยินดีต้อนรับกลับมา! คุณได้ยอดวิว ${Math.floor(idleGains)} วิวจากตอนที่ออฟไลน์ไป${cappedLine}`);
         }
     }
     if (savedUpgrades) {
@@ -220,6 +276,7 @@ function recalculateStats() {
     state.autoClicksPerSecond = 0;
     state.maxEnergy = 100;
     state.energyRegen = 5;
+    state.offlineCapHours = 2;
 
     upgrades.forEach(u => {
         if (u.type === upgradeTypes.CLICK) {
@@ -232,11 +289,22 @@ function recalculateStats() {
             state.maxEnergy += (u.power * u.level);
         } else if (u.type === upgradeTypes.ENERGY_REGEN) {
             state.energyRegen += (u.power * u.level);
+        } else if (u.type === upgradeTypes.MANAGER) {
+            state.offlineCapHours += (u.power * u.level);
         }
     });
 
     if (state.energy > state.maxEnergy) {
         state.energy = state.maxEnergy;
+    }
+
+    // Apply Title Buffs
+    activeTitleBuffs = { click: 1, idle: 1, global: 1 };
+    if (state.equippedTitle) {
+        const ach = allAchievements.find(a => a.id === state.equippedTitle);
+        if (ach) {
+            activeTitleBuffs[ach.buffType] = ach.buffValue;
+        }
     }
 }
 
@@ -280,12 +348,12 @@ function updateUI() {
 
     els.totalViews.innerHTML = `<i class="fa-solid fa-eye text-purple-400 text-xl"></i> ${formatNumber(state.views)}`;
 
-    let effectiveViewsPerSec = state.viewsPerSecond * state.tierMultiplier * activeModifiers.viralMultiplier * activeModifiers.dramaMultiplier;
+    let effectiveViewsPerSec = state.viewsPerSecond * activeTitleBuffs.idle * state.tierMultiplier * activeModifiers.viralMultiplier * activeModifiers.dramaMultiplier * activeTitleBuffs.global;
     els.viewsPerSec.innerHTML = `<i class="fa-solid fa-bolt text-yellow-400 text-xl"></i> ${formatNumber(effectiveViewsPerSec)}`;
 
     els.totalSubs.innerHTML = `<i class="fa-solid fa-users text-pink-400 text-xl"></i> ${formatNumber(state.subscribers)}`;
 
-    let effectiveClickPower = state.viewsPerClick * state.tierMultiplier * activeModifiers.viralMultiplier;
+    let effectiveClickPower = state.viewsPerClick * activeTitleBuffs.click * state.tierMultiplier * activeModifiers.viralMultiplier * activeTitleBuffs.global;
     els.clickPower.innerText = formatNumber(effectiveClickPower);
 
     // New UI elements (checking existence to prevent errors if HTML not fully updated yet)
@@ -430,6 +498,7 @@ function createFloatingText(e, amount) {
 
 // Interactions
 els.mainBtn.addEventListener('click', (e) => {
+    state.totalClicks++;
     if (state.energy >= ENERGY_DRAIN_PER_CLICK) {
         state.energy -= ENERGY_DRAIN_PER_CLICK;
         const gained = state.viewsPerClick * state.tierMultiplier * activeModifiers.viralMultiplier;
@@ -479,6 +548,10 @@ setInterval(() => {
 
     updateUI();
 }, 100);
+
+setInterval(() => {
+    checkAchievements();
+}, 2000);
 
 // Auto Click Loop
 let autoClickAccumulator = 0;
@@ -721,6 +794,117 @@ if (els.openMissionsBtn) {
             alert('เพชรไม่พอ!');
         }
     };
+}
+
+if (els.openAchievementsBtn) {
+    els.openAchievementsBtn.onclick = () => {
+        renderAchievements();
+        els.achievementsModal.classList.remove('hidden');
+    };
+    els.closeAchievementsBtn.onclick = () => els.achievementsModal.classList.add('hidden');
+}
+
+// ================= ACHIEVEMENTS & TITLES =================
+function renderAchievements() {
+    if (!els.achievementsList) return;
+    els.achievementsList.innerHTML = '';
+
+    // Display Current Title Buff if equipped
+    if (state.equippedTitle) {
+        const ach = allAchievements.find(a => a.id === state.equippedTitle);
+        if (ach) {
+            els.currentTitleDisplay.innerText = ach.title;
+            els.currentTitleBuff.innerText = ach.buffText;
+        }
+    } else {
+        els.currentTitleDisplay.innerText = 'ยังไม่มีฉายา';
+        els.currentTitleBuff.innerText = '';
+    }
+
+    allAchievements.forEach(ach => {
+        const isUnlocked = state.achievements.includes(ach.id);
+        const isEquipped = state.equippedTitle === ach.id;
+
+        let progressText = '';
+        let progressPercent = 0;
+
+        if (!isUnlocked) {
+            let current = 0;
+            if (ach.type === 'clicks') current = state.totalClicks;
+            if (ach.type === 'total_views') current = state.totalViews;
+            if (ach.type === 'subs') current = state.subscribers;
+            if (ach.type === 'max_energy') current = state.maxEnergy;
+
+            progressPercent = Math.min(100, (current / ach.target) * 100);
+            progressText = `${formatNumber(current)} / ${formatNumber(ach.target)}`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `flex flex-col gap-2 bg-black/40 p-3 rounded-xl border ${isEquipped ? 'border-yellow-500' : (isUnlocked ? 'border-yellow-500/30' : 'border-white/5 opacity-70')}`;
+
+        card.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-sm ${isUnlocked ? 'text-yellow-400' : 'text-gray-300'}">${ach.name}</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">${ach.desc}</p>
+                </div>
+                <div class="text-right">
+                    ${isUnlocked
+                ? `<p class="text-xs font-bold text-green-400 mb-1">${ach.buffText}</p>
+                           <button class="px-3 py-1 bg-yellow-600/20 hover:bg-yellow-500/40 text-yellow-500 text-xs font-bold font-mono rounded-lg border border-yellow-500/50 transition-colors">
+                               ${isEquipped ? '<i class="fa-solid fa-check"></i> ใช้งานอยู่' : 'สวมใส่ฉายา: ' + ach.title}
+                           </button>`
+                : `<p class="text-xs font-mono text-gray-400">${progressText}</p>`
+            }
+                </div>
+            </div>
+            ${!isUnlocked ? `
+            <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div class="h-full bg-yellow-500/50" style="width: ${progressPercent}%"></div>
+            </div>` : ''}
+        `;
+
+        if (isUnlocked && !isEquipped) {
+            card.querySelector('button').onclick = () => {
+                state.equippedTitle = ach.id;
+                recalculateStats();
+                updateUI();
+                renderAchievements();
+                saveGame();
+            };
+        }
+
+        els.achievementsList.appendChild(card);
+    });
+}
+
+function checkAchievements() {
+    let unlockedAny = false;
+    allAchievements.forEach(ach => {
+        if (!state.achievements.includes(ach.id)) {
+            let met = false;
+            if (ach.type === 'clicks' && state.totalClicks >= ach.target) met = true;
+            if (ach.type === 'total_views' && state.totalViews >= ach.target) met = true;
+            if (ach.type === 'subs' && state.subscribers >= ach.target) met = true;
+            if (ach.type === 'max_energy' && state.maxEnergy >= ach.target) met = true;
+
+            if (met) {
+                state.achievements.push(ach.id);
+                unlockedAny = true;
+                // Auto equip first title
+                if (!state.equippedTitle) {
+                    state.equippedTitle = ach.id;
+                    recalculateStats();
+                    updateUI();
+                }
+                setTimeout(() => alert(`🏆 ปลดล็อกความสำเร็จ: ${ach.name}!\nได้รับฉายาโบนัส: ${ach.title}`), 500);
+            }
+        }
+    });
+    if (unlockedAny) {
+        if (els.achievementsModal && !els.achievementsModal.classList.contains('hidden')) renderAchievements();
+        saveGame();
+    }
 }
 
 

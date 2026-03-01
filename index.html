@@ -74,11 +74,19 @@
           <i class="fa-solid fa-users text-pink-400 text-sm md:text-xl"></i> 0
         </span>
       </div>
-      <!-- Missions Button -->
-      <button id="open-missions-btn"
-        class="absolute -bottom-5 left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:ml-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
-        <i class="fa-solid fa-list-check"></i> ภารกิจ
-      </button>
+      <!-- Feature Buttons container -->
+      <div class="absolute -bottom-5 left-0 right-0 flex justify-center gap-2 md:static md:translate-x-0 md:ml-4">
+        <!-- Missions Button -->
+        <button id="open-missions-btn"
+          class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-list-check"></i> ภารกิจ
+        </button>
+        <!-- Achievements Button -->
+        <button id="open-achievements-btn"
+          class="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg border border-white/20 transition-transform active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-medal"></i> ฉายา
+        </button>
+      </div>
     </div>
   </header>
 
@@ -210,6 +218,35 @@
           <span class="font-bold"><i class="fa-solid fa-battery-full text-blue-400"></i> ฟื้นฟูพลังงานเต็ม</span>
           <span class="bg-black/50 px-3 py-1 rounded-full text-sky-300 font-bold text-sm">10 เพชร</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Modal -->
+  <div id="achievements-modal"
+    class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity">
+    <div
+      class="bg-slate-900 border border-white/10 p-6 md:p-8 rounded-3xl w-11/12 max-w-lg shadow-2xl relative max-h-[80vh] flex flex-col">
+      <button id="close-achievements-btn"
+        class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-2xl"></i>
+      </button>
+
+      <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
+        <i class="fa-solid fa-medal text-yellow-500"></i> ความสำเร็จ & ฉายา
+      </h2>
+      <p class="text-sm text-gray-400 mb-6">ปลดล็อกเพื่อรับฉายาและรับบัฟถาวร!</p>
+
+      <div class="mb-4 bg-black/40 p-3 rounded-xl border border-white/5 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-gray-400">ฉายาที่สวมใส่ปัจจุบัน:</span>
+          <div id="current-title-display" class="font-bold text-lg text-yellow-400">ยังไม่มีฉายา</div>
+        </div>
+        <div id="current-title-buff" class="text-sm font-bold text-green-400"></div>
+      </div>
+
+      <div id="achievements-list" class="space-y-3 overflow-y-auto flex-1 custom-scrollbar pr-2">
+        <!-- Achievements injected via JS -->
       </div>
     </div>
   </div>
